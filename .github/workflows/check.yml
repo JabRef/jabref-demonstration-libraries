@@ -2,8 +2,16 @@ name: Check
 
 on:
   pull_request:
+    paths:
+      - '.github/workflows/check.yml'
+      - 'chocolate/Chocolate.bib'
+      - '**/*.md'
   push:
     branches: [ main ]
+    paths:
+      - '.github/workflows/check.yml'
+      - 'chocolate/Chocolate.bib'
+      - '**/*.md'
   schedule:
     - cron: '2 3 * * 3'
   workflow_dispatch:
@@ -22,3 +30,18 @@ jobs:
         uses: jabref/jabref-action@main
         with:
           bibfile: chocolate/Chocolate.bib
+  markdown:
+    name: Markdown
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          submodules: 'false'
+          show-progress: 'false'
+      - name: markdownlint-cli2-action
+        uses: DavidAnson/markdownlint-cli2-action@v22
+        with:
+          globs: |
+            *.md
+            **/*.md
