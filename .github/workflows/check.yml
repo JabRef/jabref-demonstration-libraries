@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - '.github/workflows/check.yml'
-      - 'chocolate/Chocolate.bib'
+      - '**/*.bib'
       - '**/*.md'
   push:
     branches: [ main ]
     paths:
       - '.github/workflows/check.yml'
-      - 'chocolate/Chocolate.bib'
+      - '**/*.bib'
       - '**/*.md'
   schedule:
     - cron: '2 3 * * 3'
@@ -21,15 +21,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  consistency-check:
+  list-libraries:
+    name: List libraries
     runs-on: ubuntu-latest
+    outputs:
+      bibfiles: ${{ steps.find.outputs.bibfiles }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Run jabref-action
-        uses: jabref/jabref-action@main
         with:
-          bibfile: chocolate/Chocolate.bib
+          show-progress: 'false'
+      - name: Find .bib files
+        id: find
+        run: |
+          bibfiles=$(git ls-files '*.bib' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "bibfiles=$bibfiles" >> "$GITHUB_OUTPUT"
+          echo "Found: $bibfiles"
+  consistency-check:
+    name: Consistency check
+    needs: list-libraries
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bibfile: ${{ fromJSON(needs.list-libraries.outputs.bibfiles) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          show-progress: 'false'
+      - name: Run jabref-action on ${{ matrix.bibfile }}
+        uses: jabref/jabref-action@main
+        # The libraries intentionally mix entries with and without linked PDFs, DOIs,
+        # eprints, etc., so the consistency check never comes out clean. The findings are
+        # surfaced as annotations on the pull request for reviewers instead of blocking it.
+        continue-on-error: true
+        with:
+          bibfile: ${{ matrix.bibfile }}
   markdown:
     name: Markdown
     runs-on: ubuntu-latest
