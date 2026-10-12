@@ -58,7 +58,6 @@ jobs:
         continue-on-error: true
         with:
           bibfile: ${{ matrix.bibfile }}
-          output-format: github-actions
   markdown:
     name: Markdown
     runs-on: ubuntu-latest
