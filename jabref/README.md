@@ -12,9 +12,9 @@ Feel free to add something via a pull request.
 
 | Entry | License |
 | --- | --- |
-| Deshmukh_2020 | CC BY |
-| HernandezAndres_2025 | CC BY-NC-ND 4.0 |
-| Tramullas_2015 | CC BY-SA 4.0 (arXiv version) |
+| Deshmukh2020 | CC BY |
+| HernandezAndres2025 | CC BY-NC-ND 4.0 |
+| Tramullas2015 | CC BY-SA 4.0 (arXiv version) |
 
 Several other entries are open access, too.
 Use JabRef's "Search full text documents online" to fetch them.
