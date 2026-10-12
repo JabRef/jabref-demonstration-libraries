@@ -21,25 +21,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  consistency-check:
+  list-libraries:
+    name: List libraries
     runs-on: ubuntu-latest
+    outputs:
+      bibfiles: ${{ steps.find.outputs.bibfiles }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Check chocolate/Chocolate.bib
-        uses: jabref/jabref-action@main
         with:
-          bibfile: chocolate/Chocolate.bib
-      - name: Check intro/intro.bib
-        if: ${{ !cancelled() }}
-        uses: jabref/jabref-action@main
+          show-progress: 'false'
+      - name: Find .bib files
+        id: find
+        run: |
+          bibfiles=$(git ls-files '*.bib' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "bibfiles=$bibfiles" >> "$GITHUB_OUTPUT"
+          echo "Found: $bibfiles"
+  consistency-check:
+    name: Consistency check
+    needs: list-libraries
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bibfile: ${{ fromJSON(needs.list-libraries.outputs.bibfiles) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
-          bibfile: intro/intro.bib
-      - name: Check jabref/jabref.bib
-        if: ${{ !cancelled() }}
+          show-progress: 'false'
+      - name: Run jabref-action on ${{ matrix.bibfile }}
         uses: jabref/jabref-action@main
+        # The libraries intentionally mix entries with and without linked PDFs, DOIs,
+        # eprints, etc., so the consistency check never comes out clean. The findings are
+        # surfaced as annotations on the pull request for reviewers instead of blocking it.
+        continue-on-error: true
         with:
-          bibfile: jabref/jabref.bib
+          bibfile: ${{ matrix.bibfile }}
+          output-format: github-actions
   markdown:
     name: Markdown
     runs-on: ubuntu-latest

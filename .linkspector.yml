@@ -2,6 +2,8 @@ files:
   - README.md
 dirs:
   - chocolate/
+  - intro/
+  - jabref/
 useGitIgnore: true
 ignorePatterns:
   - pattern: '^http(s)?://localhost'
